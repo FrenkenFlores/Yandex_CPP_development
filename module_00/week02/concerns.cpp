@@ -8,8 +8,7 @@
 typedef std::vector<std::vector<std::string> > month;
 
 struct calendar {
-	month mon;
-	int table[12][1];
+	month mon[12];
 	int id;
 	static month fill(int size) {
 		std::vector<std::string> _list;
@@ -19,46 +18,67 @@ struct calendar {
 };
 
 void init(calendar &cal) {
-	cal.table[0][0] = 31;
-	cal.table[1][0] = 28;
-	cal.table[2][0] = 31;
-	cal.table[3][0] = 30;
-	cal.table[4][0] = 31;
-	cal.table[5][0] = 30;
-	cal.table[6][0] = 31;
-	cal.table[7][0] = 31;
-	cal.table[8][0] = 30;
-	cal.table[9][0] = 31;
-	cal.table[10][0] = 30;
-	cal.table[11][0] = 31;
+	cal.mon[0] = calendar::fill(31);
+	cal.mon[1] = calendar::fill(28);
+	cal.mon[2] = calendar::fill(31);
+	cal.mon[3] = calendar::fill(30);
+	cal.mon[4] = calendar::fill(31);
+	cal.mon[5] = calendar::fill(30);
+	cal.mon[6] = calendar::fill(31);
+	cal.mon[7] = calendar::fill(31);
+	cal.mon[8] = calendar::fill(30);
+	cal.mon[9] = calendar::fill(31);
+	cal.mon[10] = calendar::fill(30);
+	cal.mon[11] = calendar::fill(31);
 	cal.id = 0;
-	cal.mon = calendar::fill(cal.table[0][0]);
+}
+
+
+void clean(month &mon) {
+	std::vector<std::string> _list;
+	for (size_t i = 0; i < mon.size(); ++i) {
+		mon[i].clear();
+	}
 }
 
 void add(std::string command[], calendar &cal) {
-	cal.mon[std::stoi(command[1]) - 1].push_back(command[2]);
+	cal.mon[cal.id][std::stoi(command[1]) - 1].push_back(command[2]);
 };
+
 void next(calendar &cal) {
 	int difference = 0;
-	month tmp_mon = cal.mon;
-	cal.id = (cal.id + 1) % 12;
-	cal.mon.resize(cal.table[cal.id][0]);
-	for (size_t i = 0; i < cal.mon.size(); i++) {
-		cal.mon[i] = tmp_mon[i];
+	cal.id = cal.id + 1;
+	if (cal.id == 12) {
+		cal.id = 0;
+		month tmp = cal.mon[11];
+		init(cal);
+		cal.mon[11] = tmp;
 	}
-	difference = tmp_mon.size() - cal.mon.size();
+	int prev = cal.id - 1;
+	if (cal.id == 0)
+		prev = 11;
+
+	for (size_t i = 0; i < cal.mon[cal.id].size() && i < cal.mon[prev].size(); i++) {
+		cal.mon[cal.id][i] = cal.mon[prev][i];
+		cal.mon[prev][i].clear();
+	}
+	difference = cal.mon[prev].size() - cal.mon[cal.id].size();
 
 	while (difference >= 0) {
-		for (int i = 0; i < tmp_mon[tmp_mon.size() - difference - 1].size(); i++) {
-			cal.mon[cal.mon.size() - 1].push_back(tmp_mon[tmp_mon.size() - difference - 1][i]);
+		int i = 0;
+		while (cal.mon[prev][cal.mon[prev].size() - difference - 1].size() > i) {
+			cal.mon[cal.id][cal.mon[cal.id].size() - 1].push_back(cal.mon[prev][cal.mon[prev].size() - difference - 1][i]);
+			i++;
 		}
 		difference--;
 	}
+	clean(cal.mon[prev]);
 }
+
 void dump(std::string command[], calendar &cal) {
-	std::cout << cal.mon[std::stoi(command[1]) - 1].size() << " ";
-	for (int i = 0; i < cal.mon[std::stoi(command[1]) - 1].size(); ++i) {
-		std::cout << cal.mon[std::stoi(command[1]) - 1][i] << " ";
+	std::cout << cal.mon[cal.id][std::stoi(command[1]) - 1].size() << " ";
+	for (size_t i = 0; i < cal.mon[cal.id][std::stoi(command[1]) - 1].size(); ++i) {
+		std::cout << cal.mon[cal.id][std::stoi(command[1]) - 1][i] << " ";
 	}
 	std::cout << std::endl;
 }
@@ -73,9 +93,9 @@ void launch_command(std::string com[], calendar &cal) {
 }
 
 void parse_line(std::string &str, calendar &cal) {
-	int i = 0;
-	int j = 0;
-	int z = 0;
+	size_t i = 0;
+	size_t j = 0;
+	size_t z = 0;
 	std::string com[3];
 	std::string::iterator it_b = str.begin();
 	std::string::iterator it_e = str.end();
