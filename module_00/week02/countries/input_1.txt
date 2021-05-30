@@ -1,6 +1,8 @@
-HANGE_CAPITAL RussianEmpire Petrograd
+6
+CHANGE_CAPITAL RussianEmpire Petrograd
 RENAME RussianEmpire RussianRepublic
 ABOUT RussianRepublic
 RENAME RussianRepublic USSR
 CHANGE_CAPITAL USSR Moscow
 DUMP
+

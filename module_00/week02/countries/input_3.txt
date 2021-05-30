@@ -1,4 +1,5 @@
-HANGE_CAPITAL RussianEmpire Petrograd
+10
+CHANGE_CAPITAL RussianEmpire Petrograd
 RENAME USSR RussianEmpire
 DUMP
 ABOUT USSR
@@ -8,4 +9,3 @@ DUMP
 CHANGE_CAPITAL UnitedStatesOfBrazil Brasilia
 RENAME RussianEmpire UnitedStatesOfBrazil
 DUMP
-

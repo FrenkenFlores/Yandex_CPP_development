@@ -1,4 +1,5 @@
-ENAME FakeCountry FarFarAway
+24
+RENAME FakeCountry FarFarAway
 ABOUT FarFarAway
 DUMP
 CHANGE_CAPITAL TsardomOfRussia Moscow

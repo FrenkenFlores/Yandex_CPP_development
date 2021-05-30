@@ -1,7 +1,7 @@
 #include <map>
 #include <iostream>
 
-void change_capital(std::string country_name, std::string capital_name, std::map<std::string, std::string> &countries) {
+void change_capital(const std::string & country_name, const std::string & capital_name, std::map<std::string, std::string> &countries) {
 	if (countries.count(country_name) == 0) {
 		std::cout << "Introduce new country " << country_name << " with capital " << capital_name << std::endl;
 		countries[country_name] = capital_name;
@@ -11,24 +11,26 @@ void change_capital(std::string country_name, std::string capital_name, std::map
 	}
 }
 
-void rename(std::string old_name, std::string  new_name, std::map<std::string, std::string> &countries) {
-	std::cout << "Country " << old_name << " with capital " << countries[old_name] << " has been renamed to " << new_name << std::endl;
-	std::string tmp = countries[old_name];
-	countries.erase(old_name);
-	countries[new_name] = tmp;
-}
-
-void about(std::string country_name, std::map<std::string, std::string> &countries) {
-	std::cout << "Country " << country_name << " has capital " << countries[country_name] << std::endl;
-}
-
 void dump(std::map<std::string, std::string> &countries) {
 	for (auto i : countries) {
 		std::cout << i.first << "/" << i.second << std::endl;
 	}
 }
 
+void rename(const std::string &old_country, const std::string &new_country, std::map<std::string, std::string> &countries) {
+	if (countries.find(old_country) == countries.end()) {
+		std::cout << "there is no such country as " << old_country << std::endl;
+		return;
+	}
+	std::cout << "Country " << old_country << " with capital " << countries[old_country] <<
+		 " has been renamed to " << new_country << std::endl;
+	countries[new_country] = countries[old_country];
+	countries.erase(old_country);
+}
 
+void about(const std::string & country_name,std::map<std::string, std::string> &countries) {
+	std::cout << "Country " << country_name << " has capital " << countries[country_name] << std::endl;
+}
 
 
 
@@ -53,7 +55,7 @@ void parse_line(std::string &str, std::map<std::string, std::string> &countries)
 	while ((i = str.find(" ")) && i != std::string::npos) {
 		str[i] = '\0';
 		com[j++] = std::string(it_b, it_b + i - z);
-		it_b = str.begin() + i + 1;
+		it_b = str.begin() + i;
 		z = i;
 	}
 	com[j] = std::string(it_b, it_e);

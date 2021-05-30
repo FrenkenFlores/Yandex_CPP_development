@@ -1,4 +1,4 @@
-ncorrect rename, skip
+Incorrect rename, skip
 Country FarFarAway doesn't exist
 There are no countries in the world
 Introduce new country TsardomOfRussia with capital Moscow

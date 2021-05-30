@@ -1,4 +1,4 @@
-ntroduce new country RussianEmpire with capital Petrograd
+Introduce new country RussianEmpire with capital Petrograd
 Incorrect rename, skip
 RussianEmpire/Petrograd
 Country USSR doesn't exist
