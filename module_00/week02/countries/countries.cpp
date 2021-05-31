@@ -5,6 +5,8 @@ void change_capital(const std::string & country_name, const std::string & capita
 	if (countries.count(country_name) == 0) {
 		std::cout << "Introduce new country " << country_name << " with capital " << capital_name << std::endl;
 		countries[country_name] = capital_name;
+	} else if (countries.find(country_name) != countries.end() && countries[country_name] == capital_name) {
+		std::cout << "Country " << country_name << " hasn't changed its capital" << std::endl;
 	} else {
 		std::cout << "Country " << country_name << " has changed its capital from " << countries[country_name] << " to " << capital_name << std::endl;
 		countries[country_name] = capital_name;
@@ -12,14 +14,21 @@ void change_capital(const std::string & country_name, const std::string & capita
 }
 
 void dump(std::map<std::string, std::string> &countries) {
-	for (auto i : countries) {
-		std::cout << i.first << "/" << i.second << std::endl;
+	if (countries.size() == 0) {
+		std::cout << "There are no countries in the world" << std::endl;
+		return;
 	}
+	std::map<std::string, std::string>::iterator it = countries.begin();
+	for (int i = 0; i < countries.size() - 1; i++) {
+		std::cout << it->first << "/" << it->second << " ";
+		++it;
+	}
+	std::cout << it->first << "/" << it->second << std::endl;
 }
 
 void rename(const std::string &old_country, const std::string &new_country, std::map<std::string, std::string> &countries) {
-	if (countries.find(old_country) == countries.end()) {
-		std::cout << "there is no such country as " << old_country << std::endl;
+	if (countries.find(old_country) == countries.end() || new_country == old_country || countries.find(new_country) != countries.end()) {
+		std::cout << "Incorrect rename, skip" << std::endl;
 		return;
 	}
 	std::cout << "Country " << old_country << " with capital " << countries[old_country] <<
@@ -29,10 +38,12 @@ void rename(const std::string &old_country, const std::string &new_country, std:
 }
 
 void about(const std::string & country_name,std::map<std::string, std::string> &countries) {
+	if (countries.find(country_name) == countries.end()) {
+		std::cout << "Country " << country_name << " doesn't exist" << std::endl;
+		return;
+	}
 	std::cout << "Country " << country_name << " has capital " << countries[country_name] << std::endl;
 }
-
-
 
 void launch_command(std::string com[], std::map<std::string, std::string> &countries) {
 	if (com[0].find("CHANGE_CAPITAL") != std::string::npos)
@@ -45,31 +56,28 @@ void launch_command(std::string com[], std::map<std::string, std::string> &count
 		dump(countries);
 }
 
-void parse_line(std::string &str, std::map<std::string, std::string> &countries) {
-	size_t i = 0;
-	size_t j = 0;
-	size_t z = 0;
+void parse_line(std::map<std::string, std::string> &countries) {
 	std::string com[3];
-	std::string::iterator it_b = str.begin();
-	std::string::iterator it_e = str.end();
-	while ((i = str.find(" ")) && i != std::string::npos) {
-		str[i] = '\0';
-		com[j++] = std::string(it_b, it_b + i - z);
-		it_b = str.begin() + i;
-		z = i;
-	}
-	com[j] = std::string(it_b, it_e);
+	int j = 0;
+	int com_size;
+	std::cin >> com[j++];
+	if (com[0] == "CHANGE_CAPITAL" || com[0] == "RENAME")
+		com_size = 3;
+	else if (com[0] == "ABOUT")
+		com_size = 2;
+	else if (com[0] == "DUMP")
+		com_size = 1;
+	while (j < com_size)
+		std::cin >> com[j++];
 	launch_command(com, countries);
 }
 
 int main() {
 	int nbr;
-	std::string command;
 	std::map<std::string, std::string> countries;
 	std::cin >> nbr;
 	while (nbr >= 0) {
-		std::getline(std::cin, command);
-		parse_line(command, countries);
+		parse_line(countries);
 		nbr--;
 	}
 	return EXIT_SUCCESS;
