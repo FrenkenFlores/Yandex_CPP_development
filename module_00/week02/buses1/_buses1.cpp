@@ -3,20 +3,18 @@
 #include <vector>
 #include <iostream>
 
-void parse_line(std::vector<std::pair<std::string, std::vector<std::string> > > &bus_stop) {
+void parse_line(std::map<std::string, std::vector<std::string> > &bus_stop) {
 	std::string str;
 	std::cin >> str;
 	if (str == "NEW_BUS") {
 		std::string bus;
 		int stop_count;
 		std::cin >> bus >> stop_count;
-		std::vector<std::string> stops;
-		std::string input;
+		std::string stops[stop_count];
 		for (int i = 0; i < stop_count; ++i) {
-			std::cin >> input;
-			stops.push_back(input);
+			std::cin >> stops[i];
+			bus_stop[bus].push_back(stops[i]);
 		}
-		bus_stop.push_back(std::pair<std::string, std::vector<std::string> >(bus, stops));
 	}
 	else if (str == "BUSES_FOR_STOP") {
 		bool flag = false;
@@ -55,17 +53,15 @@ void parse_line(std::vector<std::pair<std::string, std::vector<std::string> > > 
 			return;
 		}
 		//output
-		int index = 0;
-		while (bus_stop[index].first != bus) {
-			index++;
-		}
 		std::vector<std::string> stops;
-		for (auto i : bus_stop[index].second) {
+		for (auto i : bus_stop[bus]) {
 			//check intersection with other busses
 			for (auto k : bus_stop) {
 				for (auto z : k.second) {
+					std::cout << "Checked: " << k.first << std::endl;
 					if (z == i && k.first != bus) {
 						inter.push_back(k.first);
+						std::cout << "Pushed back: " << k.first << std::endl;
 						break;
 					}
 				}
@@ -86,11 +82,7 @@ void parse_line(std::vector<std::pair<std::string, std::vector<std::string> > > 
 			std::cout << "No buses" << std::endl;
 			return;
 		}
-		std::map< std::string, std::vector<std::string> > sorted_bus_stops;
 		for (auto i : bus_stop) {
-			sorted_bus_stops[i.first] = i.second;
-		}
-		for (auto i : sorted_bus_stops) {
 			std::cout << "Bus " << i.first << ":";
 			for (auto j : i.second) {
 				std::cout << " " << j;
@@ -102,7 +94,7 @@ void parse_line(std::vector<std::pair<std::string, std::vector<std::string> > > 
 
 int main() {
 	int nbr;
-	std::vector<std::pair<std::string, std::vector<std::string> > > bus_stop;	// vector of pairs as unsorted map
+	std::map<std::string, std::vector<std::string> > bus_stop;
 	std::cin >> nbr;
 	while (nbr >= 0) {
 		parse_line(bus_stop);
