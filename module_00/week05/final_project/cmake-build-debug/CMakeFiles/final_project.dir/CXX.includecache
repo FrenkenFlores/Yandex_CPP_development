@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/fflores/Desktop/tmp/Yandex_CPP_development/module_00/week05/final_project/final_project.cpp
+string
+-
+map
+-
+set
+-
+iostream
+-
+exception
+-
+sstream
+-
+
