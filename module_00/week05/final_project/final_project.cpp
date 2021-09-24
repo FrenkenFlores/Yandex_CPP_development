@@ -2,7 +2,9 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <stdexcept>
 #include <exception>
+#include <typeinfo>
 #include <sstream>
 using namespace std;
 
@@ -22,22 +24,34 @@ private:
 	int day;
 };
 
+
+std::ostream &operator<<(std::ostream &i, Date &date) {
+	if (i)
+		i << date.GetYear() << '-' << date.GetMonth() << '-' << date.GetDay();
+	return i;
+}
+
 std::istream &operator>>(std::istream &i, Date &date) {
 	if (i) {
+		char first_delimiter, second_delimiter;
 		int y, m, d;
-		i >> y;
-		i.ignore(1);
-		i >> m;
-		i.ignore(1);
-		i >> d;
+		i >> y >> first_delimiter >> m >> second_delimiter >> d;
+		if (!i) throw std::invalid_argument("Wrong date format");
 		date.SetYear(y);
 		date.SetMonth(m);
 		date.SetDay(d);
+		std::cout << (i.peek() == EOF) << std::endl;
+		std::cout << date << std::endl;
+		if (date.GetYear() <= 0 || date.GetMonth() <= 0 || date.GetDay() <= 0)
+			throw std::invalid_argument("Wrong date format: " + date.GetYear() + first_delimiter + date.GetMonth() + second_delimiter + date.GetDay());
 	}
 	return i;
 }
 
-bool operator<(const Date& lhs, const Date& rhs);
+
+bool operator<(const Date& lhs, const Date& rhs) {
+
+}
 
 class Database {
 private:
@@ -58,28 +72,10 @@ public:
 
 	}
 
-	void Find(const Date& date) const;
+	void Find(const Date& date) const {}
 
-	void Print() const;
+	void Print() const {}
 };
-
-int find_date(const std::string &str) {
-	for (int i = 0; i < str.length(); i++) {
-		if (std::isalpha(str[i]))
-			return i;
-	}
-	return 0;
-}
-
-int find_event(const std::string &str) {
-
-	for (int i = 0; i < str.length(); i++) {
-		if (std::isalpha(str[i]))
-			return i;
-	}
-	return 0;
-}
-
 
 void add(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
@@ -93,7 +89,7 @@ void add(void *db, void *cmd){
 	s >> event;
 
 //	std::cout << "add: " << action << "/" << date.GetDay() << "/"<< date.GetMonth() << "/" << date.GetYear() << "/" << event << "\n";
-	database->AddEvent(date, event);
+//	database->AddEvent(date, event);
 }
 void del(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
@@ -127,7 +123,21 @@ void print(void *db, void *cmd){
 	database->Print();
 }
 
+bool check_input(const 	std::map<std::string, f> commands, const std::string &command) {
+	std::stringstream s(command);
+	std::string action;
+	s >> action;
+	std::cout << action << std::endl;
+	if (commands.find(action) == commands.end()) {
+		std::cout << "Unknown command: " << command << endl;
+		return false;
+	} else if (action != "Print") {
+		Date date;
+		s >> date;
+	}
 
+	return true;
+}
 
 int main() {
 	Database db;
@@ -136,15 +146,13 @@ int main() {
 	commands["Del"] = &del;
 	commands["Find"] = &find;
 	commands["Print"] = &print;
-
 	std::string command;
 	while (getline(std::cin, command)) {
 		std::string action(command, 0, command.find(' '));
-		if (commands.find(action) == commands.end()) {
-			std::cout << "Unknown command: " << command << endl;
-			continue;
-		} else
+		if (check_input(commands, command))
 			commands[action](&db, &command);
+		else
+			continue;
 	}
 
 	return 0;

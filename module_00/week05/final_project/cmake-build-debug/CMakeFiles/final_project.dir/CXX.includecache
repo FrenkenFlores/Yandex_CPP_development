@@ -15,7 +15,11 @@ set
 -
 iostream
 -
+stdexcept
+-
 exception
+-
+typeinfo
 -
 sstream
 -
