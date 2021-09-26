@@ -6,17 +6,41 @@
 #include <exception>
 #include <typeinfo>
 #include <sstream>
+#include <iomanip>
 using namespace std;
 
 using f = void (*)(void *db, void *cmd);
+
+struct Day {
+	int value;
+	explicit Day(int new_value) {
+		value = new_value;
+	}
+};
+
+struct Month {
+	int value;
+	explicit Month(int new_value) {
+		value = new_value;
+	}
+};
+
+struct Year {
+	int value;
+	explicit Year(int new_value) {
+		value = new_value;
+	}
+};
+
+
 class Date {
 public:
 	int GetYear() const { return year; }
 	int GetMonth() const { return month; }
 	int GetDay() const { return day; }
-	void SetYear(int _year) { year=_year; }
-	void SetMonth(int _month) { month=_month; }
-	void SetDay(int _day) { day=_day; }
+	void SetYear(Year _year) { year=_year.value; }
+	void SetMonth(Month _month) { month=_month.value; }
+	void SetDay(Day _day) { day=_day.value; }
 
 private:
 	int year;
@@ -26,8 +50,11 @@ private:
 
 
 std::ostream &operator<<(std::ostream &i, Date &date) {
+	std::cout << std::setfill('0');
 	if (i)
-		i << date.GetYear() << '-' << date.GetMonth() << '-' << date.GetDay();
+		i	<< std::setw(4) << date.GetYear() << '-' \
+			<< std::setw(2) << date.GetMonth() << '-' \
+			<< std::setw(2) << date.GetDay();
 	return i;
 }
 
@@ -44,10 +71,11 @@ std::istream &operator>>(std::istream &i, Date &date) {
 		char first_delimiter, second_delimiter;
 		int y, m, d;
 		i >> y >> first_delimiter >> m >> second_delimiter >> d;
-		if (!i || (i.peek() != int(' ')) && i.peek() != EOF) throw std::invalid_argument("Wrong date format:" + tmp);
-		date.SetYear(y);
-		date.SetMonth(m);
-		date.SetDay(d);
+		if (!i || (i.peek() != int(' ')) && i.peek() != EOF)
+			throw std::invalid_argument("Wrong date format:" + tmp);
+		date.SetYear(Year(y));
+		date.SetMonth(Month(m));
+		date.SetDay(Day(d));
 		if (date.GetYear() <= 0 || date.GetMonth() <= 0 || date.GetDay() <= 0)
 			throw std::invalid_argument("Wrong date format:" + tmp);
 	}
@@ -56,7 +84,9 @@ std::istream &operator>>(std::istream &i, Date &date) {
 
 
 bool operator<(const Date& lhs, const Date& rhs) {
-
+	int l_days = lhs.GetYear() * 12 * 30 + lhs.GetMonth() * 30 + lhs.GetDay();
+	int r_days = rhs.GetYear() * 12 * 30 + rhs.GetMonth() * 30 + rhs.GetDay();
+	return l_days < r_days;
 }
 
 class Database {
@@ -69,7 +99,6 @@ public:
 			db[date].insert(event);
 		} else if (db.at(date).find(event) == db.at(date).end())
 			db[date].insert(event);
-		std::cout << "Added successfully" << endl;
 	}
 	bool DeleteEvent(const Date& date, const std::string& event) {
 		if (event.empty()) return false;
@@ -103,8 +132,11 @@ public:
 	}
 
 	void Print() const {
+		std::cout << std::setfill('0');
 		for (const std::pair<const Date, set<const std::string> > pair : db) {
-			std::cout << pair.first.GetYear() << '-' << pair.first.GetMonth() << '-' << pair.first.GetDay() << ' ';
+			std::cout	<< std::setw(4) << pair.first.GetYear() << '-' \
+						<< std::setw(2) << pair.first.GetMonth() << '-' \
+						<< std::setw(2) << pair.first.GetDay() << ' ';
 			this->Find(pair.first);
 		}
 	}
@@ -121,7 +153,6 @@ void add(void *db, void *cmd){
 	s >> date;
 	s >> event;
 
-//	std::cout << "add: " << action << "/" << date.GetDay() << "/"<< date.GetMonth() << "/" << date.GetYear() << "/" << event << "\n";
 	database->AddEvent(date, event);
 }
 void del(void *db, void *cmd){
@@ -140,7 +171,6 @@ void del(void *db, void *cmd){
 		database->DeleteDate(date);
 	}
 
-//	std::cout << "del: " << action << "/" << date.GetDay() << "/"<< date.GetMonth() << "/" << date.GetYear() << "/" << event << "\n";
 }
 void find(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
