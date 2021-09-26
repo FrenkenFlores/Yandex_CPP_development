@@ -44,7 +44,7 @@ std::istream &operator>>(std::istream &i, Date &date) {
 		char first_delimiter, second_delimiter;
 		int y, m, d;
 		i >> y >> first_delimiter >> m >> second_delimiter >> d;
-		if (!i || i.peek() != int(' ')) throw std::invalid_argument("Wrong date format:" + tmp);
+		if (!i || (i.peek() != int(' ')) && i.peek() != EOF) throw std::invalid_argument("Wrong date format:" + tmp);
 		date.SetYear(y);
 		date.SetMonth(m);
 		date.SetDay(d);
@@ -61,26 +61,53 @@ bool operator<(const Date& lhs, const Date& rhs) {
 
 class Database {
 private:
-	std::map<Date, set<const std::string> > db;
+	std::map<const Date, set<const std::string> > db;
 public:
 	void AddEvent(const Date& date, const std::string& event) {
 		if (event.empty()) return;
-		if (db.at(date).find(event) == db.at(date).end())
+		if (db.find(date) == db.end()) {
 			db[date].insert(event);
+		} else if (db.at(date).find(event) == db.at(date).end())
+			db[date].insert(event);
+		std::cout << "Added successfully" << endl;
 	}
 	bool DeleteEvent(const Date& date, const std::string& event) {
 		if (event.empty()) return false;
-		if (db.at(date).find(event) == db.at(date).end())
+		if (db.at(date).find(event) == db.at(date).end()) {
 			db[date].extract(event);
-		std::cout << "Deleted successfully" << endl;
+			std::cout << "Deleted successfully" << std::endl;
+			return true;
+		}
+		else {
+			std::cout << "Event not found" << std::endl;
+			return false;
+		}
 	}
 	int  DeleteDate(const Date& date) {
-
+		int n = 0;
+		if (db.find(date) != db.end()) {
+			n = db.at(date).size();
+			db.erase(date);
+			std::cout << "Deleted " << db.at(date).size() << " events" << std::endl;
+		}
+		return n;
 	}
 
-	void Find(const Date& date) const {}
+	void Find(const Date& date) const {
+		std::string events = "";
+		for (const std::string &event : db.at(date)) {
+			events += event + " ";
+		}
+		events.erase(events.end() - 1);
+		std::cout << events << std::endl;
+	}
 
-	void Print() const {}
+	void Print() const {
+		for (const std::pair<const Date, set<const std::string> > pair : db) {
+			std::cout << pair.first.GetYear() << '-' << pair.first.GetMonth() << '-' << pair.first.GetDay() << ' ';
+			this->Find(pair.first);
+		}
+	}
 };
 
 void add(void *db, void *cmd){
@@ -95,7 +122,7 @@ void add(void *db, void *cmd){
 	s >> event;
 
 //	std::cout << "add: " << action << "/" << date.GetDay() << "/"<< date.GetMonth() << "/" << date.GetYear() << "/" << event << "\n";
-//	database->AddEvent(date, event);
+	database->AddEvent(date, event);
 }
 void del(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
@@ -106,10 +133,14 @@ void del(void *db, void *cmd){
 	std::string event;
 	s >> action;
 	s >> date;
-	s >> event;
+	if (!s || s.peek() != EOF) {
+		s >> event;
+		database->DeleteEvent(date, event);
+	} else {
+		database->DeleteDate(date);
+	}
 
 //	std::cout << "del: " << action << "/" << date.GetDay() << "/"<< date.GetMonth() << "/" << date.GetYear() << "/" << event << "\n";
-	database->AddEvent(date, event);
 }
 void find(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
