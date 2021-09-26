@@ -32,18 +32,24 @@ std::ostream &operator<<(std::ostream &i, Date &date) {
 }
 
 std::istream &operator>>(std::istream &i, Date &date) {
+//	tmp duplicates i stream input
+	std::string tmp;
+//	Get current posistion
+	int len = i.tellg();
+//	Copy input in tmp string
+	std::getline(i, tmp);
+//	Return to position before getline()
+	i.seekg(len ,std::ios_base::beg);
 	if (i) {
 		char first_delimiter, second_delimiter;
 		int y, m, d;
 		i >> y >> first_delimiter >> m >> second_delimiter >> d;
-		if (!i) throw std::invalid_argument("Wrong date format");
+		if (!i || i.peek() != int(' ')) throw std::invalid_argument("Wrong date format:" + tmp);
 		date.SetYear(y);
 		date.SetMonth(m);
 		date.SetDay(d);
-		std::cout << (i.peek() == EOF) << std::endl;
-		std::cout << date << std::endl;
 		if (date.GetYear() <= 0 || date.GetMonth() <= 0 || date.GetDay() <= 0)
-			throw std::invalid_argument("Wrong date format: " + date.GetYear() + first_delimiter + date.GetMonth() + second_delimiter + date.GetDay());
+			throw std::invalid_argument("Wrong date format:" + tmp);
 	}
 	return i;
 }
@@ -127,13 +133,17 @@ bool check_input(const 	std::map<std::string, f> commands, const std::string &co
 	std::stringstream s(command);
 	std::string action;
 	s >> action;
-	std::cout << action << std::endl;
 	if (commands.find(action) == commands.end()) {
 		std::cout << "Unknown command: " << command << endl;
 		return false;
 	} else if (action != "Print") {
 		Date date;
-		s >> date;
+		try {
+			s >> date;
+		} catch (std::invalid_argument &e) {
+			std::cout << e.what() << std::endl;
+			return false;
+		}
 	}
 
 	return true;
