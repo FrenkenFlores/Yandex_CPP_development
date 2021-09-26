@@ -17,10 +17,6 @@ iostream
 -
 stdexcept
 -
-exception
--
-typeinfo
--
 sstream
 -
 iomanip

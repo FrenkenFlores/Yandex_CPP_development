@@ -3,11 +3,8 @@
 #include <set>
 #include <iostream>
 #include <stdexcept>
-#include <exception>
-#include <typeinfo>
 #include <sstream>
 #include <iomanip>
-using namespace std;
 
 using f = void (*)(void *db, void *cmd);
 
@@ -51,10 +48,15 @@ private:
 
 std::ostream &operator<<(std::ostream &i, Date &date) {
 	std::cout << std::setfill('0');
-	if (i)
-		i	<< std::setw(4) << date.GetYear() << '-' \
-			<< std::setw(2) << date.GetMonth() << '-' \
-			<< std::setw(2) << date.GetDay();
+	if (i) {
+		if (date.GetYear() < 0) {
+			i << '-' << std::setw(4) << (date.GetYear() * -1) << '-';
+		} else {
+			i << std::setw(4) << date.GetYear() << '-';
+		}
+		i << std::setw(2) << date.GetMonth() << '-' \
+ 		<< std::setw(2) << date.GetDay();
+	}
 	return i;
 }
 
@@ -76,8 +78,11 @@ std::istream &operator>>(std::istream &i, Date &date) {
 		date.SetYear(Year(y));
 		date.SetMonth(Month(m));
 		date.SetDay(Day(d));
-		if (date.GetYear() <= 0 || date.GetMonth() <= 0 || date.GetDay() <= 0)
-			throw std::invalid_argument("Wrong date format:" + tmp);
+		if (date.GetMonth() < 1 || date.GetMonth() > 12)
+			throw std::invalid_argument("Month value is invalid: " + std::to_string(date.GetMonth()));
+		else if (date.GetDay() > 31 || date.GetDay() < 1)
+			throw std::invalid_argument("Day value is invalid: " + std::to_string(date.GetDay()));
+
 	}
 	return i;
 }
@@ -91,7 +96,7 @@ bool operator<(const Date& lhs, const Date& rhs) {
 
 class Database {
 private:
-	std::map<const Date, set<const std::string> > db;
+	std::map<const Date, std::set<const std::string> > db;
 public:
 	void AddEvent(const Date& date, const std::string& event) {
 		if (event.empty()) return;
@@ -102,7 +107,7 @@ public:
 	}
 	bool DeleteEvent(const Date& date, const std::string& event) {
 		if (event.empty()) return false;
-		if (db.at(date).find(event) == db.at(date).end()) {
+		if (db.at(date).find(event) != db.at(date).end()) {
 			db[date].extract(event);
 			std::cout << "Deleted successfully" << std::endl;
 			return true;
@@ -117,8 +122,8 @@ public:
 		if (db.find(date) != db.end()) {
 			n = db.at(date).size();
 			db.erase(date);
-			std::cout << "Deleted " << db.at(date).size() << " events" << std::endl;
 		}
+		std::cout << "Deleted " << n << " events" << std::endl;
 		return n;
 	}
 
@@ -133,10 +138,14 @@ public:
 
 	void Print() const {
 		std::cout << std::setfill('0');
-		for (const std::pair<const Date, set<const std::string> > pair : db) {
-			std::cout	<< std::setw(4) << pair.first.GetYear() << '-' \
-						<< std::setw(2) << pair.first.GetMonth() << '-' \
-						<< std::setw(2) << pair.first.GetDay() << ' ';
+		for (const std::pair<const Date, std::set<const std::string> > pair : db) {
+			if ( pair.first.GetYear() < 0)
+				std::cout << '-' << std::setw(4) << (pair.first.GetYear() * -1) << '-';
+			else
+				std::cout << std::setw(4) << pair.first.GetYear() << '-';
+			std::cout << std::setw(2) << pair.first.GetMonth() << '-' \
+			<< std::setw(2) << pair.first.GetDay() << ' ';
+
 			this->Find(pair.first);
 		}
 	}
@@ -144,7 +153,7 @@ public:
 
 void add(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
-	std::string *command = static_cast<string *>(cmd);
+	std::string *command = static_cast<std::string *>(cmd);
 	std::stringstream s(*command);
 	std::string action;
 	Date date;
@@ -157,14 +166,14 @@ void add(void *db, void *cmd){
 }
 void del(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
-	std::string *command = static_cast<string *>(cmd);
+	std::string *command = static_cast<std::string *>(cmd);
 	std::stringstream s(*command);
 	std::string action;
 	Date date;
 	std::string event;
 	s >> action;
 	s >> date;
-	if (!s || s.peek() != EOF) {
+	if (s || s.peek() != EOF) {
 		s >> event;
 		database->DeleteEvent(date, event);
 	} else {
@@ -174,7 +183,7 @@ void del(void *db, void *cmd){
 }
 void find(void *db, void *cmd){
 	Database *database = static_cast<Database *>(db);
-	std::string *command = static_cast<string *>(cmd);
+	std::string *command = static_cast<std::string *>(cmd);
 	std::stringstream s(*command);
 	std::string action;
 	Date date;
@@ -194,8 +203,9 @@ bool check_input(const 	std::map<std::string, f> commands, const std::string &co
 	std::stringstream s(command);
 	std::string action;
 	s >> action;
+	if (action.empty()) return false;
 	if (commands.find(action) == commands.end()) {
-		std::cout << "Unknown command: " << command << endl;
+		std::cout << "Unknown command: " << command << std::endl;
 		return false;
 	} else if (action != "Print") {
 		Date date;
