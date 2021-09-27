@@ -67,6 +67,9 @@ std::istream &operator>>(std::istream &i, Date &date) {
 	int len = i.tellg();
 //	Copy input in tmp string
 	std::getline(i, tmp);
+	tmp = std::string(tmp, 1);
+//	Cut off date from tmp
+	tmp = std::string(tmp, 0, tmp.find(' '));
 //	Return to position before getline()
 	i.seekg(len ,std::ios_base::beg);
 	if (i) {
@@ -74,7 +77,7 @@ std::istream &operator>>(std::istream &i, Date &date) {
 		int y, m, d;
 		i >> y >> first_delimiter >> m >> second_delimiter >> d;
 		if (!i || (i.peek() != int(' ')) && i.peek() != EOF)
-			throw std::invalid_argument("Wrong date format:" + tmp);
+			throw std::invalid_argument("Wrong date format: " + tmp);
 		date.SetYear(Year(y));
 		date.SetMonth(Month(m));
 		date.SetDay(Day(d));
@@ -96,17 +99,14 @@ bool operator<(const Date& lhs, const Date& rhs) {
 
 class Database {
 private:
-	std::map<const Date, std::set<const std::string> > db;
+	std::map<Date, std::set<std::string> > db;
 public:
 	void AddEvent(const Date& date, const std::string& event) {
 		if (event.empty()) return;
-		if (db.find(date) == db.end()) {
-			db[date].insert(event);
-		} else if (db.at(date).find(event) == db.at(date).end())
-			db[date].insert(event);
+		db[date].insert(event);
 	}
 	bool DeleteEvent(const Date& date, const std::string& event) {
-		if (event.empty()) return false;
+		if (event.empty() || db.find(date) == db.end()) return false;
 		if (db.at(date).find(event) != db.at(date).end()) {
 			db[date].extract(event);
 			std::cout << "Deleted successfully" << std::endl;
@@ -128,17 +128,20 @@ public:
 	}
 
 	void Find(const Date& date) const {
-		std::string events = "";
-		for (const std::string &event : db.at(date)) {
-			events += event + " ";
+		if (db.find(date) != db.end()) {
+			std::string events = "";
+			for (const std::string &event : db.at(date)) {
+				events += event + " ";
+			}
+			events.erase(events.end() - 1);
+			std::cout << events << std::endl;
 		}
-		events.erase(events.end() - 1);
-		std::cout << events << std::endl;
 	}
 
 	void Print() const {
 		std::cout << std::setfill('0');
-		for (const std::pair<const Date, std::set<const std::string> > pair : db) {
+		for (const std::pair<Date, std::set<std::string> > &pair : db) {
+			if (pair.second.empty()) continue;
 			if ( pair.first.GetYear() < 0)
 				std::cout << '-' << std::setw(4) << (pair.first.GetYear() * -1) << '-';
 			else
