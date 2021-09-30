@@ -129,27 +129,45 @@ public:
 
 	void Find(const Date& date) const {
 		if (db.find(date) != db.end()) {
-			std::string events = "";
 			for (const std::string &event : db.at(date)) {
+				std::cout << event << std::endl;
+			}
+		}
+	}
+
+//	Первый вариант
+	void Print() const {
+		std::cout << std::setfill('0');
+		for (const std::pair<Date, std::set<std::string> > &pair : db) {
+			if (pair.second.empty()) continue;
+			if (pair.first.GetYear() < 0)
+				std::cout << '-' << std::setw(4) << (pair.first.GetYear() * -1) << '-';
+			else
+				std::cout	<< std::setw(4) << pair.first.GetYear() << '-';
+			std::cout 	<< std::setw(2) << pair.first.GetMonth() << '-' \
+						<< std::setw(2) << pair.first.GetDay() << ' ';
+			std::string events = "";
+			for (const std::string &event : db.at(pair.first)) {
 				events += event + " ";
 			}
 			events.erase(events.end() - 1);
 			std::cout << events << std::endl;
 		}
 	}
-
-	void Print() const {
+//	Второй вариант
+	void _Print() const {
 		std::cout << std::setfill('0');
 		for (const std::pair<Date, std::set<std::string> > &pair : db) {
 			if (pair.second.empty()) continue;
-			if ( pair.first.GetYear() < 0)
-				std::cout << '-' << std::setw(4) << (pair.first.GetYear() * -1) << '-';
-			else
-				std::cout << std::setw(4) << pair.first.GetYear() << '-';
-			std::cout << std::setw(2) << pair.first.GetMonth() << '-' \
-			<< std::setw(2) << pair.first.GetDay() << ' ';
-
-			this->Find(pair.first);
+			for (const std::string &event : db.at(pair.first)) {
+				if (pair.first.GetYear() < 0)
+					std::cout << '-' << std::setw(4) << (pair.first.GetYear() * -1) << '-';
+				else
+					std::cout	<< std::setw(4) << pair.first.GetYear() << '-';
+				std::cout 	<< std::setw(2) << pair.first.GetMonth() << '-' \
+							<< std::setw(2) << pair.first.GetDay() << ' ' << event \
+							<< std::endl;
+			}
 		}
 	}
 };
