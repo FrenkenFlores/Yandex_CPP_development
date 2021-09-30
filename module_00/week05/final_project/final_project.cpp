@@ -76,7 +76,7 @@ std::istream &operator>>(std::istream &i, Date &date) {
 		char first_delimiter, second_delimiter;
 		int y, m, d;
 		i >> y >> first_delimiter >> m >> second_delimiter >> d;
-		if (!i || (i.peek() != int(' ')) && i.peek() != EOF)
+		if (!i || (i.peek() != int(' ')) && i.peek() != EOF || first_delimiter != '-' || second_delimiter != '-')
 			throw std::invalid_argument("Wrong date format: " + tmp);
 		date.SetYear(Year(y));
 		date.SetMonth(Month(m));
@@ -106,13 +106,18 @@ public:
 		db[date].insert(event);
 	}
 	bool DeleteEvent(const Date& date, const std::string& event) {
-		if (event.empty() || db.find(date) == db.end()) return false;
+		if (event.empty()) return false;
+		if (db.find(date) == db.end()) {
+			std::cout << "Event not found" << std::endl;
+			return false;
+		}
 		if (db.at(date).find(event) != db.at(date).end()) {
 			db[date].extract(event);
+			if (db[date].empty())
+				db.erase(date);
 			std::cout << "Deleted successfully" << std::endl;
 			return true;
-		}
-		else {
+		} else {
 			std::cout << "Event not found" << std::endl;
 			return false;
 		}
@@ -135,8 +140,8 @@ public:
 		}
 	}
 
-//	Первый вариант
-	void Print() const {
+//	Print date events in one line
+	void _Print() const {
 		std::cout << std::setfill('0');
 		for (const std::pair<Date, std::set<std::string> > &pair : db) {
 			if (pair.second.empty()) continue;
@@ -154,11 +159,11 @@ public:
 			std::cout << events << std::endl;
 		}
 	}
-//	Второй вариант
-	void _Print() const {
+//	Print events in seperate lines
+	void Print() const {
 		std::cout << std::setfill('0');
 		for (const std::pair<Date, std::set<std::string> > &pair : db) {
-			if (pair.second.empty()) continue;
+			if (pair.second.empty() || pair.first.GetYear() < 0) continue;
 			for (const std::string &event : db.at(pair.first)) {
 				if (pair.first.GetYear() < 0)
 					std::cout << '-' << std::setw(4) << (pair.first.GetYear() * -1) << '-';
@@ -226,15 +231,16 @@ bool check_input(const 	std::map<std::string, f> commands, const std::string &co
 	s >> action;
 	if (action.empty()) return false;
 	if (commands.find(action) == commands.end()) {
-		std::cout << "Unknown command: " << command << std::endl;
-		return false;
+		std::string wrong_command = std::string(command, 0, command.find(' '));
+		std::cout << "Unknown command: " << wrong_command << std::endl;
+		exit(1);
 	} else if (action != "Print") {
 		Date date;
 		try {
 			s >> date;
 		} catch (std::invalid_argument &e) {
 			std::cout << e.what() << std::endl;
-			return false;
+			exit(2);
 		}
 	}
 

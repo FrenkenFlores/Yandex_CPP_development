@@ -1,0 +1,6 @@
+Add 1-1-1 b
+Add 1-1-1 c
+Del 1-1-1 c
+Print
+Del 1-1-1
+Print
