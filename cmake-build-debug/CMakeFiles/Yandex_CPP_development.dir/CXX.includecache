@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/fflores/Desktop/tmp/Yandex_CPP_development/module_01/week01/matrix_sum/main.cpp
+iostream
+-
+fstream
+-
+stdexcept
+-
+vector
+-
+matrix_sum.cpp
+/Users/fflores/Desktop/tmp/Yandex_CPP_development/module_01/week01/matrix_sum/matrix_sum.cpp
+
+/Users/fflores/Desktop/tmp/Yandex_CPP_development/module_01/week01/matrix_sum/matrix_sum.cpp
+new
+-
+iostream
+-
+iostream
+-
+
